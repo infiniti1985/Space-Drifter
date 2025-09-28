@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Space Drifter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=VT323&display=swap" rel="stylesheet">
+    <style>
+      body {
+        background-color: #020010;
+        color: #E0E0E0;
+        overflow: hidden;
+        font-family: 'Exo 2', sans-serif;
+        letter-spacing: 0.05em;
+      }
+
+      .font-mono-retro {
+        font-family: 'Exo 2', sans-serif;
+      }
+      
+      .font-vt323 {
+        font-family: 'VT323', monospace;
+      }
+
+      /* CRACKTRO SPLASH SCREEN */
+      .cracktro-container {
+        background-color: #000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* NEW: Starfield Effect */
+      .stars-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        perspective: 600px;
+        transform-style: preserve-3d;
+      }
+      .stars-layer {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        animation: fly-through linear infinite;
+      }
+      @keyframes fly-through {
+        from { transform: translateZ(-100px); }
+        to { transform: translateZ(600px); } /* Should match perspective */
+      }
+      .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+      }
+      .stars-layer-1 { animation-duration: 30s; }
+      .stars-layer-2 { animation-duration: 20s; }
+      .stars-layer-3 { animation-duration: 12s; }
+
+      .scanlines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.05) 1px,
+          transparent 1px
+        );
+        background-size: 100% 3px;
+        animation: scanline-move 20s linear infinite;
+        pointer-events: none;
+        z-index: 100;
+      }
+      @keyframes scanline-move {
+        from { background-position-y: 0; }
+        to { background-position-y: 100px; }
+      }
+      .ascii-art {
+        color: #00ff00;
+        text-shadow: 0 0 5px #00ff00;
+        white-space: pre;
+        font-size: 10px;
+        line-height: 1.1;
+        animation: flicker-in 1.5s steps(2, start);
+      }
+      .boot-text {
+        color: #00ff00;
+        text-shadow: 0 0 5px #00ff00;
+        align-self: flex-start;
+        margin-left: 2rem;
+      }
+      .glitch-text {
+        animation: glitch 1s linear infinite;
+      }
+      @keyframes flicker-in {
+        0% { opacity: 0; }
+        20% { opacity: 1; text-shadow: 0 0 10px #00ff00; }
+        25% { opacity: 0.3; }
+        40% { opacity: 1; transform: scale(1.01); }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; transform: scale(1); }
+      }
+      @keyframes glitch {
+        2%,64% { transform: translate(2px,0) skew(0deg); }
+        4%,60% { transform: translate(-2px,0) skew(0deg); }
+        62% { transform: translate(0,0) skew(5deg); }
+      }
+      .scroller-container {
+        position: absolute;
+        bottom: 10%;
+        width: 100%;
+        background-color: #00ff00;
+        color: #000;
+        white-space: nowrap;
+        overflow: hidden;
+        padding: 5px 0;
+      }
+      .scroller-text {
+        display: inline-block;
+        padding-left: 100%;
+        animation: scroll-left 15s linear infinite;
+      }
+      @keyframes scroll-left {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-100%); }
+      }
+
+      /* SHIP DESIGNS */
+      .ship-triangle, .pirate-triangle, .mission-target-triangle {
+        width: 24px;
+        height: 28px;
+        background-color: currentColor;
+        clip-path: polygon(50% 0%, 15% 100%, 85% 100%);
+        position: relative;
+      }
+      .ship-triangle {
+        color: #E0E0E0; /* Cool White */
+        filter: drop-shadow(0 0 5px #60a5fa);
+      }
+      .pirate-triangle {
+        width: 22px;
+        height: 26px;
+        color: #ff3636; /* Neon Red */
+        clip-path: polygon(50% 0, 0% 80%, 100% 80%);
+        filter: drop-shadow(0 0 5px #ff3636);
+      }
+      .mission-target-triangle {
+        width: 28px;
+        height: 32px;
+        color: #c936ff; /* Neon Purple */
+        clip-path: polygon(50% 0, 10% 40%, 0 100%, 100% 100%, 90% 40%);
+        filter: drop-shadow(0 0 8px #c936ff);
+      }
+
+      /* SHIP THRUST */
+      .ship-thrust {
+        width: 14px;
+        height: 22px;
+        background: linear-gradient(to bottom, #ffffff, #a0d0ff, #3080ff00);
+        position: absolute;
+        bottom: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        animation: flicker 0.08s infinite;
+        clip-path: polygon(50% 100%, 0 0, 100% 0);
+        opacity: 0.9;
+      }
+
+      /* MISSILE */
+      .homing-missile {
+        width: 6px;
+        height: 18px;
+        background-color: white;
+        border-radius: 3px;
+        filter: drop-shadow(0 0 3px white);
+      }
+      .homing-missile::after {
+        content: '';
+        position: absolute;
+        bottom: -14px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 8px;
+        height: 12px;
+        background: linear-gradient(to bottom, #87ceeb, #ff8c0000);
+        clip-path: polygon(50% 100%, 0 0, 100% 0);
+        animation: flicker 0.1s infinite;
+      }
+
+      /* HYPERSPACE */
+       .hyperspace-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: white;
+        z-index: 100;
+        animation: hyperspace-flash 1.5s ease-out forwards;
+      }
+      .hyperspace-overlay .star-stretch {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 2px;
+        height: 2px;
+        background: black;
+        border-radius: 50%;
+        animation: stretch 1.5s ease-out forwards;
+        transform-origin: center;
+      }
+
+      /* MISSION TOASTS */
+       .mission-toast {
+        animation: slideIn 0.5s ease-out forwards, slideOut 0.5s ease-in 4.5s forwards;
+      }
+      .mission-complete {
+        animation: slideIn 0.5s ease-out forwards, slideOut 0.5s ease-in 2.5s forwards;
+      }
+
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-100%); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes slideOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-100%); }
+      }
+      @keyframes hyperspace-flash {
+        0% { opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+      @keyframes stretch {
+        0% { transform: translate(-50%, -50%) rotate(var(--angle)) scale(1, 1); opacity: 1; }
+        100% { transform: translate(-50%, -50%) rotate(var(--angle)) scale(1, 800); opacity: 0; }
+      }
+      @keyframes flicker {
+        0%, 100% { transform: translateX(-50%) scaleY(1) scaleX(1); opacity: 1; }
+        50% { transform: translateX(-50%) scaleY(0.9) scaleX(1.1); opacity: 0.8; }
+      }
+      
+      /* NEW IN-GAME OBJECTS */
+      .star-core {
+        background: radial-gradient(circle, #fff, #ffdf00, #ff8c00);
+        box-shadow: 0 0 100px 50px #ff8c00;
+        animation: pulse-star 5s ease-in-out infinite;
+      }
+      @keyframes pulse-star {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 100px 50px #ff8c00; }
+        50% { transform: scale(1.05); box-shadow: 0 0 120px 60px #ff8c00; }
+      }
+      .asteroid {
+        background-color: #8c7b6c;
+        background-image: radial-gradient(#6b5b4c 1px, transparent 1px);
+        background-size: 5px 5px;
+        border-radius: 40% 60% 70% 30% / 30% 50% 50% 70%;
+      }
+      .debris {
+        background-color: #8c7b6c;
+      }
+      .resource-crystal {
+        background-color: #22d3ee;
+        clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+        animation: pulse-crystal 1.5s ease-in-out infinite;
+        box-shadow: 0 0 10px 5px #00ffff;
+      }
+      @keyframes pulse-crystal {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 10px 5px #00ffff; }
+        50% { transform: scale(1.2); box-shadow: 0 0 15px 8px #00ffff; }
+      }
+      .projectile {
+        border-radius: 50%;
+        filter: drop-shadow(0 0 4px currentColor);
+      }
+      .missile-pickup {
+          border-radius: 50%;
+          border: 2px solid white;
+          background-color: #a855f7;
+          box-shadow: 0 0 10px 5px #c084fc;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          color: white;
+          font-size: 10px; /* Adjust size based on radius */
+          animation: pulse-crystal 1.5s ease-in-out infinite;
+      }
+      .explosion-base {
+          border-radius: 50%;
+          position: absolute;
+          transform: translate(-50%, -50%);
+      }
+      .explosion-rich {
+          background: radial-gradient(circle, #ffffff 0%, #ffff00 20%, #ff8c00 50%, #ff0000 80%, transparent 100%);
+      }
+      .explosion-dud {
+          background: radial-gradient(circle, #e0e0e0 0%, #b0b0b0 30%, #808080 60%, transparent 100%);
+      }
+      
+      .ranger-station-v2 {
+        position: absolute;
+        animation: rotate-station-v2 40s linear infinite;
+      }
+      @keyframes rotate-station-v2 {
+        from { transform: translate(-50%, -50%) rotate(0deg); }
+        to { transform: translate(-50%, -50%) rotate(360deg); }
+      }
+      .ranger-station-v2-core {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 45%;
+        height: 45%;
+        transform: translate(-50%, -50%);
+        background-color: #b0c4de;
+        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        box-shadow: inset 0 0 10px #000;
+      }
+      .ranger-station-v2-arm {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 12%;
+        height: 130%; /* long arm */
+        background-color: #5d6d7e;
+        transform-origin: center center;
+        margin-left: -6%; /* -(width/2) */
+        margin-top: -65%; /* -(height/2) */
+      }
+      .ranger-station-v2-arm::after { /* The light */
+        content: '';
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 10px;
+        height: 10px;
+        background-color: #00ffff;
+        border-radius: 50%;
+        box-shadow: 0 0 8px 3px #00ffff;
+        animation: blink-light 2s ease-in-out infinite alternate;
+      }
+      .ranger-station-v2 .arm1 { transform: rotate(90deg); }
+      .ranger-station-v2 .arm2 { transform: rotate(210deg); }
+      .ranger-station-v2 .arm3 { transform: rotate(330deg); }
+      @keyframes blink-light {
+        from { opacity: 0.4; }
+        to { opacity: 1; }
+      }
+
+      .hyperspace-gate {
+        border-radius: 50%;
+        border: 15px solid #4a90e2;
+        box-shadow: 0 0 20px 10px #4a90e2, inset 0 0 15px 5px #4a90e2;
+        animation: rotate-gate 30s linear infinite;
+      }
+      @keyframes rotate-gate {
+          from { transform: translate(-50%, -50%) rotate(0deg); }
+          to { transform: translate(-50%, -50%) rotate(360deg); }
+      }
+      
+      .interaction-prompt {
+        animation: fadeIn 0.5s ease-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+        to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      }
+
+      /* RADAR */
+      .radar-gate-dot {
+        animation: pulse-radar 1.5s ease-in-out infinite;
+        box-shadow: 0 0 4px 1px currentColor;
+      }
+      @keyframes pulse-radar {
+        0%, 100% {
+          transform: scale(1.0);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 0.7;
+        }
+      }
+
+      /* PLANET STYLES */
+      .planet-container {
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .planet-body {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        position: relative;
+        overflow: hidden;
+        box-shadow: inset 10px 0 20px rgba(0,0,0,0.5);
+      }
+      .planet-rings {
+        position: absolute;
+        border-radius: 50%;
+        border-color: rgba(200, 200, 180, 0.5);
+        border-style: solid;
+        width: 200%;
+        height: 200%;
+        transform: rotateX(70deg) rotateZ(20deg);
+        box-sizing: border-box;
+      }
+      .planet-atmosphere {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        animation: pulse-atmosphere 6s ease-in-out infinite;
+      }
+      @keyframes pulse-atmosphere {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+      }
+      .planet-rocky, .planet-moon {
+        background-image: radial-gradient(hsla(0, 0%, 50%, 0.2) 1px, transparent 1px),
+                          radial-gradient(circle at 20% 20%, #bababa, #5a5a5a);
+        background-size: 8px 8px, auto;
+      }
+      .planet-moon {
+         background: radial-gradient(circle at 20% 20%, #e0e0e0, #8c8c8c);
+      }
+      .planet-gas-giant-1 {
+        background: linear-gradient(180deg, #d2a172 0%, #a26d4b 20%, #e8c26a 40%, #f3a05f 60%, #e66d4f 80%, #c45b3f 100%);
+        animation: rotate-clouds 150s linear infinite;
+      }
+      .planet-gas-giant-2 {
+        background: linear-gradient(180deg, #4a6c8c, #6b8ead, #a5c3e3, #8aaccb, #5f80a2, #4a6c8c);
+        animation: rotate-clouds 180s linear infinite;
+      }
+      .planet-ice {
+        background: radial-gradient(circle at 70% 20%, #ffffff, #e0f2fe, #a5d8f3);
+        box-shadow: inset -5px -5px 15px rgba(0,0,0,0.3);
+      }
+      .planet-terran {
+        background-color: #3b82f6;
+        background-image: 
+            radial-gradient(circle at 15% 80%, #166534 15%, transparent 16%), 
+            radial-gradient(circle at 75% 25%, #22c55e 20%, transparent 21%), 
+            radial-gradient(circle at 50% 50%, hsla(0,0%,100%,0.8) 2%, transparent 3%), 
+            radial-gradient(circle at 40% 60%, hsla(0,0%,100%,0.6) 5%, transparent 6%), 
+            radial-gradient(circle at 60% 40%, hsla(0,0%,100%,0.7) 3%, transparent 4%);
+        animation: rotate-clouds 120s linear infinite;
+      }
+      @keyframes rotate-clouds {
+        from { background-position: 0% 0%; }
+        to { background-position: 200% 0%; }
+      }
+      .planet-lava {
+        background: radial-gradient(circle at 30% 30%, #ffdf00, #ff6600, #cc0000, #1a0000);
+        animation: flow-lava 10s ease-in-out infinite;
+        background-size: 200% 200%;
+        box-shadow: inset 10px 0 20px #000, 0 0 20px #ff6600;
+      }
+      .planet-mars {
+        background: radial-gradient(circle at 20% 20%, #c1440e, #8c2d0a);
+      }
+      .planet-venus {
+        background: radial-gradient(circle at 70% 20%, #f0e68c, #d2b48c, #a0522d);
+        animation: rotate-clouds 90s linear infinite reverse;
+      }
+      @keyframes flow-lava {
+        0% { background-position: 0% 0%; }
+        50% { background-position: 100% 100%; }
+        100% { background-position: 0% 0%; }
+      }
+
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^0.15.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
